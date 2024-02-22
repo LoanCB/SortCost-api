@@ -5,7 +5,7 @@ import { ConfigService } from '@nestjs/config';
 const configService = new ConfigService(configurationConfig());
 
 export const AppDataSource: DataSourceOptions = {
-  type: 'mysql',
+  type: 'mariadb',
   host: configService.get('database.host'),
   port: configService.get('database.port'),
   username: configService.get('database.username'),
@@ -13,7 +13,7 @@ export const AppDataSource: DataSourceOptions = {
   database: configService.get('database.name'),
   entities: [__dirname + '/../**/*.entity{.ts,.js}'],
   migrations: [__dirname + '/migrations/**/*{.ts,.js}'],
-  synchronize: configService.get('node_env') === 'development' || configService.get('node_env') === 'test',
+  synchronize: false,
 };
 
 export const dataSource = new DataSource(AppDataSource);

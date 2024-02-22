@@ -1,6 +1,10 @@
 import { config } from 'dotenv';
 
-config({ path: `${process.cwd()}/.env` });
+if (process.env.NODE_ENV === 'test') {
+  config({ path: `${process.cwd()}/src/config/env/.env-test` });
+} else {
+  config({ path: `${process.cwd()}/.env` });
+}
 
 export default () => ({
   node_env: process.env.NODE_ENV || 'development',
