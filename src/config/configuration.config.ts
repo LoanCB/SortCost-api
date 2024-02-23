@@ -9,6 +9,8 @@ if (process.env.NODE_ENV === 'test') {
 export default () => ({
   node_env: process.env.NODE_ENV || 'development',
   port: parseInt(process.env.PORT || '3100'),
+  secret: process.env.APP_SECRET,
+  jwtTime: process.env.JWT_EXPIRES_TIME || '60',
   database: {
     host: process.env.DB_HOST,
     port: parseInt(process.env.POSTGRES_PORT || '3306'),
