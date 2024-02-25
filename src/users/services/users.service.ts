@@ -37,6 +37,10 @@ export class UsersService {
     return await this.usersRepository.save({ ...formatedCreateUser } as Partial<User>);
   }
 
+  async findAll(): Promise<User[]> {
+    return await this.usersRepository.find();
+  }
+
   async findOneByEmail(email: string): Promise<User | undefined> {
     return await this.usersRepository.findOneOrFail({ where: { email }, relations: { role: true } });
   }
