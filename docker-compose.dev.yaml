@@ -1,0 +1,39 @@
+version: '3'
+
+services:
+  sortcost_api:
+    ports:
+      - ${PORT}:${PORT}
+    depends_on:
+      - sortcost_db
+    command: /bin/sh -c "echo 'Running API on dev!' && npm run migration:run && npm start"
+
+  sortcost_db:
+    image: mariadb:11.1.2
+    container_name: sortcost_db
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - ${DB_PORT}:3306
+    volumes:
+      - ./database/sortcost:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: sortcost_pma
+    environment:
+      PMA_HOST: mariadb
+      PMA_USER: root
+      PMA_PASSWORD: root
+    ports:
+      - '8080:80'
+
+  mailcatcher:
+    restart: on-failure
+    image: schickling/mailcatcher
+    ports: [1025, 1080:1080]
+
+networks:
+  indexernet:
+    driver: bridge
