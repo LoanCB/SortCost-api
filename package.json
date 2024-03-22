@@ -26,7 +26,12 @@
     "migration:revert": "npm run typeorm -- migration:revert",
     "fixtures": "npm run build && npx fixtures",
     "fixtures:load": "npm run fixtures -- load ./src/orm/fixtures/ -d ./dist/orm/data-source.js --sync --require=ts-node/register --require=tsconfig-paths/register",
-    "fixtures:sync": "node -r tsconfig-paths/register -r ts-node/register src/orm/helpers/load-fixtures.helper.ts"
+    "fixtures:sync": "node -r tsconfig-paths/register -r ts-node/register src/orm/helpers/load-fixtures.helper.ts",
+    "docker:dev": "docker-compose --file docker-compose.yaml --file docker-compose.dev.yaml --compatibility up -d --build",
+    "docker:down": "docker-compose --file docker-compose.yaml --file docker-compose.dev.yaml --compatibility down",
+    "docker:db": "docker-compose --file docker-compose.yaml --file docker-compose.dev.yaml --compatibility up -d --build sortcost_db",
+    "docker:api": "docker-compose --file docker-compose.yaml --file docker-compose.dev.yaml --compatibility up -d --no-deps --build sortcost_api",
+    "docker:logs": "docker-compose logs -f"
   },
   "dependencies": {
     "@nestjs/common": "^9.0.0",
