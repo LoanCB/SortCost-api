@@ -6,7 +6,8 @@ import { RolesGuard } from 'src/users/guards/roles.guard';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CommonSwaggerResponse } from 'src/common/helpers/common-swagger-config.helper';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
-// import { Request as ExpressRequest } from 'express';
+import { Request as ExpressRequest } from 'express';
+import { CustomHttpException } from 'src/common/helpers/custom.exception';
 
 @Controller({
   path: 'auth',
@@ -27,7 +28,14 @@ export class AuthController {
 
   @Get('profile')
   @UseGuards(JwtAuthGuard)
-  getProfile(@Request() req: any) {
-    return req.user as User;
+  getProfile(@Request() req: ExpressRequest) {
+    const user = req.user;
+
+    if (!user) {
+      throw new CustomHttpException('REQUEST_USER_NOT_FOUND', 404);
+    }
+
+    delete (user as Partial<User>).password;
+    return user;
   }
 }
