@@ -28,7 +28,7 @@ export class AuthController {
 
   @Get('profile')
   @UseGuards(JwtAuthGuard)
-  getProfile(@Request() req: ExpressRequest) {
+  getProfile(@Request() req: ExpressRequest): Partial<User> {
     const user = req.user;
 
     if (!user) {
