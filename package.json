@@ -26,7 +26,8 @@
     "migration:revert": "npm run typeorm -- migration:revert",
     "fixtures": "npm run build && npx fixtures",
     "fixtures:load": "npm run fixtures -- load ./src/orm/fixtures/ -d ./dist/orm/data-source.js --sync --require=ts-node/register --require=tsconfig-paths/register",
-    "fixtures:sync": "node -r tsconfig-paths/register -r ts-node/register src/orm/helpers/load-fixtures.helper.ts"
+    "fixtures:sync": "node -r tsconfig-paths/register -r ts-node/register src/orm/helpers/load-fixtures.helper.ts",
+    "hash-password": "ts-node src/scripts/hash-password.script.ts"
   },
   "dependencies": {
     "@nestjs/common": "^9.0.0",
@@ -48,10 +49,11 @@
     "passport-local": "^1.0.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.2.0",
-    "typeorm": "^0.3.16"
+    "typeorm": "^0.3.16",
+    "typeorm-fixtures-cli": "^4.0.0"
   },
   "devDependencies": {
-    "@nestjs/cli": "^9.0.0",
+    "@nestjs/cli": "^10.0.0",
     "@nestjs/schematics": "^9.0.0",
     "@nestjs/testing": "^9.0.0",
     "@types/bcrypt": "^5.0.2",
