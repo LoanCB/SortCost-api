@@ -1,7 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { TimestampEntity } from 'src/common/entities/timestamp.entity';
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, ManyToOne, OneToMany, Relation } from 'typeorm';
 import CategoryIcon from '../types/category-icon.type';
+import { Account } from './account.entity';
+import { Expense } from './expense.entity';
 
 @Entity()
 export class Category extends TimestampEntity {
@@ -23,4 +25,10 @@ export class Category extends TimestampEntity {
   @ApiPropertyOptional({ description: 'Icon of the category', example: CategoryIcon.SHOPPING })
   @Column({ nullable: false })
   icon?: CategoryIcon;
+
+  @ManyToOne(() => Account, (account) => account.categories)
+  account: Relation<Account>;
+
+  @OneToMany(() => Expense, (expense) => expense.category)
+  expenses: Relation<Expense>[];
 }

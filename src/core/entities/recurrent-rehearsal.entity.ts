@@ -1,7 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { TimestampEntity } from 'src/common/entities/timestamp.entity';
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, OneToOne, Relation } from 'typeorm';
 import { RepeatUnity } from '../types/recurrent-rehearsal-repeat-unity.type';
+import { Expense } from './expense.entity';
 
 @Entity()
 export class RecurrentRehearsal extends TimestampEntity {
@@ -20,4 +21,7 @@ export class RecurrentRehearsal extends TimestampEntity {
   @ApiProperty({ description: 'Sampling date', example: new Date() })
   @Column({ nullable: false, type: 'datetime' })
   recurrentAt: Date;
+
+  @OneToOne(() => Expense, (expense) => expense.reccurentRehearsal)
+  expense: Relation<Expense>;
 }

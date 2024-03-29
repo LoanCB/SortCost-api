@@ -1,6 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { TimestampEntity } from 'src/common/entities/timestamp.entity';
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, Relation } from 'typeorm';
+import { Budget } from './budget.entity';
+import { Category } from './category.entity';
+import { RecurrentRehearsal } from './recurrent-rehearsal.entity';
+import { User } from 'src/users/entities/users.entity';
+import { Account } from './account.entity';
 
 @Entity()
 export class Expense extends TimestampEntity {
@@ -23,4 +28,20 @@ export class Expense extends TimestampEntity {
   @ApiProperty({ description: 'Amount to be repaid later', example: 10 })
   @Column({ nullable: false, type: 'decimal', scale: 2, precision: 10 })
   amountRefundable?: number;
+
+  @OneToMany(() => Budget, (budget) => budget.expense)
+  budgets?: Relation<Budget>[];
+
+  @ManyToOne(() => Category, (category) => category.expenses)
+  category: Relation<Category>;
+
+  @OneToOne(() => RecurrentRehearsal, (reccurentRehearsal) => reccurentRehearsal.expense)
+  @JoinColumn()
+  reccurentRehearsal?: Relation<RecurrentRehearsal>;
+
+  @ManyToOne(() => User, (user) => user.expenses)
+  user: Relation<User>;
+
+  @ManyToOne(() => Account, (account) => account.expenses)
+  account: Relation<Account>;
 }
