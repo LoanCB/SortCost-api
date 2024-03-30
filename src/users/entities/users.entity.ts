@@ -1,7 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Column, DeleteDateColumn, Entity, ManyToOne, Relation } from 'typeorm';
+import { Column, DeleteDateColumn, Entity, JoinTable, ManyToMany, ManyToOne, OneToMany, Relation } from 'typeorm';
 import { Role } from './roles.entity';
 import { BaseEntity } from 'src/common/entities/base.entity';
+import { Expense } from 'src/core/entities/expense.entity';
+import { Account } from 'src/core/entities/account.entity';
 
 @Entity()
 export class User extends BaseEntity {
@@ -35,4 +37,11 @@ export class User extends BaseEntity {
   @ApiProperty({ type: Role })
   @ManyToOne(() => Role, (role) => role.users)
   role: Relation<Role>;
+
+  @OneToMany(() => Expense, (expense) => expense.user)
+  expenses: Relation<Expense>[];
+
+  @ManyToMany(() => Account, (account) => account.users)
+  @JoinTable()
+  accounts: Relation<Account>[];
 }
