@@ -20,7 +20,7 @@ export class User extends BaseEntity {
   email: string;
 
   @ApiProperty({ description: 'Hashed password of the user used to authenticate', example: 'azerty123' })
-  @Column({ nullable: false })
+  @Column({ nullable: false, select: false })
   password: string;
 
   @ApiProperty({

@@ -28,14 +28,13 @@ export class AuthController {
 
   @Get('profile')
   @UseGuards(JwtAuthGuard)
-  getProfile(@Request() req: ExpressRequest): Partial<User> {
+  getProfile(@Request() req: ExpressRequest): User {
     const user = req.user;
 
     if (!user) {
       throw new CustomHttpException('REQUEST_USER_NOT_FOUND', 404);
     }
 
-    delete (user as Partial<User>).password;
-    return user;
+    return user as User;
   }
 }
