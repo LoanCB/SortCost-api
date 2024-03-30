@@ -9,6 +9,7 @@ import { hash } from 'bcrypt';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { ErrorCodesService } from 'src/common/services/error-codes.service';
 import { PatchUserDto } from '../dto/patch-user.dto';
+import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class UsersService {
@@ -42,8 +43,8 @@ export class UsersService {
     return await this.usersRepository.save({ ...formatedCreateUser } as Partial<User>);
   }
 
-  async findAll(): Promise<User[]> {
-    return await this.usersRepository.find({ relations: { role: true }, withDeleted: true });
+  async findAll(options: IPaginationOptions): Promise<Pagination<User>> {
+    return paginate<User>(this.usersRepository, options, { relations: { role: true }, withDeleted: true });
   }
 
   async findOneByEmail(email: string): Promise<User | undefined> {
