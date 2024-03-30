@@ -1,5 +1,4 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { TimestampEntity } from 'src/common/entities/timestamp.entity';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, Relation } from 'typeorm';
 import { Budget } from './budget.entity';
 import { Category } from './category.entity';
@@ -7,8 +6,9 @@ import { RecurrentRehearsal } from './recurrent-rehearsal.entity';
 import { User } from 'src/users/entities/users.entity';
 import { Account } from './account.entity';
 
+import { BaseEntity } from 'src/common/entities/base.entity';
 @Entity()
-export class Expense extends TimestampEntity {
+export class Expense extends BaseEntity {
   @ApiProperty({ description: 'Name of the expense', example: 'Buying clothes Devred' })
   @Column({ nullable: false })
   name: string;

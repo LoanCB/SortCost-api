@@ -1,11 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { TimestampEntity } from 'src/common/entities/timestamp.entity';
 import { Column, Entity, OneToOne, Relation } from 'typeorm';
 import { RepeatUnity } from '../types/recurrent-rehearsal-repeat-unity.type';
 import { Expense } from './expense.entity';
 
+import { BaseEntity } from 'src/common/entities/base.entity';
 @Entity()
-export class RecurrentRehearsal extends TimestampEntity {
+export class RecurrentRehearsal extends BaseEntity {
   @ApiProperty({ description: 'Number of times payment will be made', example: 12 })
   @Column({ nullable: false, type: 'integer' })
   numberOfRepeat: number;

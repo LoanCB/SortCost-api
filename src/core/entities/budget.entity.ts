@@ -1,11 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { TimestampEntity } from 'src/common/entities/timestamp.entity';
 import { Column, Entity, ManyToOne, Relation } from 'typeorm';
 import { Account } from './account.entity';
 import { Expense } from './expense.entity';
+import { BaseEntity } from 'src/common/entities/base.entity';
 
 @Entity()
-export class Budget extends TimestampEntity {
+export class Budget extends BaseEntity {
   @ApiProperty({ description: 'Name of the budget', example: 'Salary' })
   @Column({ nullable: false })
   name: string;
