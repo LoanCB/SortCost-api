@@ -14,6 +14,7 @@ export const AppDataSource: DataSourceOptions = {
   entities: [__dirname + '/../**/*.entity{.ts,.js}'],
   migrations: [__dirname + '/migrations/**/*{.ts,.js}'],
   synchronize: false,
+  logging: configService.get('sql_logging'),
 };
 
 export const dataSource = new DataSource(AppDataSource);

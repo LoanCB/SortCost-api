@@ -9,6 +9,9 @@ import { hash } from 'bcrypt';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { ErrorCodesService } from 'src/common/services/error-codes.service';
 import { PatchUserDto } from '../dto/patch-user.dto';
+import { getEntityFilteredList } from 'src/common/helpers/filter-repository.helper';
+import { PaginationParamsDto } from 'src/common/dto/pagination-params.dto';
+import { EntityFilteredListResults } from 'src/common/types/filter-repository.types';
 
 @Injectable()
 export class UsersService {
@@ -42,12 +45,22 @@ export class UsersService {
     return await this.usersRepository.save({ ...formatedCreateUser } as Partial<User>);
   }
 
-  async findAll(): Promise<User[]> {
-    return await this.usersRepository.find({ relations: { role: true }, withDeleted: true });
+  async findAll(query: PaginationParamsDto): EntityFilteredListResults<User> {
+    const [users, totalResults] = await getEntityFilteredList({
+      repository: this.usersRepository,
+      queryFilter: query,
+      relations: [{ relation: 'role', alias: 'r' }],
+      withDeleted: true,
+    });
+    return [users, users.length, totalResults];
   }
 
   async findOneByEmail(email: string): Promise<User | undefined> {
-    return await this.usersRepository.findOneOrFail({ where: { email }, relations: { role: true } });
+    return await this.usersRepository.findOneOrFail({
+      where: { email },
+      relations: { role: true },
+      select: ['id', 'email', 'password'],
+    });
   }
 
   async findOneById(id: number) {
