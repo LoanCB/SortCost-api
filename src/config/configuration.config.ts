@@ -18,4 +18,6 @@ export default () => ({
     password: process.env.DB_PASSWORD,
     name: process.env.DB_NAME,
   },
+  defaultPaginationLimit: process.env.DEFAULT_PAGINATION_LIMIT || 15,
+  sql_logging: !(process.env.SQL_LOGGING === 'false'),
 });

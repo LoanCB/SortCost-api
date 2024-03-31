@@ -15,7 +15,6 @@ import {
   UseGuards,
   Request,
   Query,
-  DefaultValuePipe,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CommonSwaggerResponse } from 'src/common/helpers/common-swagger-config.helper';
@@ -35,7 +34,8 @@ import { PatchUserDto } from '../dto/patch-user.dto';
 import { CustomHttpException } from 'src/common/helpers/custom.exception';
 import { Request as ExpressRequest } from 'express';
 import { ErrorCodesService } from 'src/common/services/error-codes.service';
-import { Pagination } from 'nestjs-typeorm-paginate';
+import { PaginatedList } from 'src/common/types/pagination-params.types';
+import { UsersListDto } from '../dto/users-list.dto';
 
 @Controller({
   path: 'users',
@@ -59,12 +59,9 @@ export class UsersController {
   @Get()
   @Roles(RoleType.ADMINISTRATOR)
   @SwaggerUserFindAll()
-  async findAll(
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page = 1,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit = 10,
-  ): Promise<Pagination<User>> {
-    limit = limit > 100 ? 100 : limit;
-    return await this.usersService.findAll({ page, limit });
+  async findAll(@Query() query: UsersListDto): Promise<PaginatedList<User>> {
+    const [users, currentResults, totalResults] = await this.usersService.findAll(query);
+    return { ...query, totalResults, currentResults, results: users };
   }
 
   @Get(':id')
