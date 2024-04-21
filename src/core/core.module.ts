@@ -7,6 +7,8 @@ import { Budget } from './entities/budget.entity';
 import { Category } from './entities/category.entity';
 import { Expense } from './entities/expense.entity';
 import { RecurrentRehearsal } from './entities/recurrent-rehearsal.entity';
+import { AccountController } from './controllers/account.controller';
+import { AccountsService } from './services/account.service';
 
 @Module({
   imports: [
@@ -14,8 +16,8 @@ import { RecurrentRehearsal } from './entities/recurrent-rehearsal.entity';
     UsersModule,
     TypeOrmModule.forFeature([Account, Budget, Category, Expense, RecurrentRehearsal]),
   ],
-  controllers: [],
-  providers: [],
+  controllers: [AccountController],
+  providers: [AccountsService],
   exports: [],
 })
 export class CoreModule {}

@@ -1,5 +1,6 @@
 import { ObjectLiteral, Repository } from 'typeorm';
 import { PaginationParamsDto } from '../dto/pagination-params.dto';
+import dayjs from 'dayjs';
 
 export interface RelationParam {
   relation: string;
@@ -23,4 +24,16 @@ export interface ProcessedParams {
   filterField: string[];
   filterOp: string[];
   filter: string[];
+  filterTable: string[];
+}
+
+export type GenerateEntityOptions = Pick<
+  EntityFilteredListOptions<never>,
+  'queryFilter' | 'searchFields' | 'isAndCondition'
+>;
+
+export interface SqlQueryWithParameter {
+  baseQuery: string;
+  key: string;
+  value: string | dayjs.Dayjs;
 }

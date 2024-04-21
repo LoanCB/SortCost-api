@@ -79,6 +79,13 @@ export class PaginationParamsDto {
   search?: string;
 
   @ApiPropertyOptional({
+    description: 'Table name to apply filter (commat use at separator for multiple filters)',
+    example: 'e',
+  })
+  @IsOptional()
+  filterTable?: string;
+
+  @ApiPropertyOptional({
     description: 'Field to filter on.<br>Example: firstName',
   })
   @IsOptional()

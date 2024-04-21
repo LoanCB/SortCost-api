@@ -7,9 +7,10 @@ import { LoggingMiddleware } from './common/middlewares/logging.middleware';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { CommonModule } from './common/common.module';
+import { CoreModule } from './core/core.module';
 
 @Module({
-  imports: [TypeOrmModule.forRoot(AppDataSource), AuthModule, UsersModule, CommonModule],
+  imports: [TypeOrmModule.forRoot(AppDataSource), AuthModule, UsersModule, CommonModule, CoreModule],
   controllers: [AppController],
   providers: [AppService],
 })
