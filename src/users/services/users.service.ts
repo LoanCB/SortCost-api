@@ -1,7 +1,7 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { User } from '../entities/users.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Role } from '../entities/roles.entity';
 import { CreateUserDto, FormatedCreatedUserDto } from '../dto/create-user.dto';
 import { CustomHttpException } from 'src/common/helpers/custom.exception';
@@ -53,6 +53,10 @@ export class UsersService {
       withDeleted: true,
     });
     return [users, users.length, totalResults];
+  }
+
+  async findByIds(ids: number[]): Promise<User[]> {
+    return await this.usersRepository.findBy({ id: In(ids) });
   }
 
   async findOneByEmail(email: string): Promise<User | undefined> {

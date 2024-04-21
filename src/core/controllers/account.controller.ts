@@ -1,5 +1,16 @@
 import { AccountsService } from './../services/account.service';
-import { Controller, Get, UseGuards, Request, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  UseGuards,
+  Request,
+  Query,
+  Post,
+  Body,
+  HttpStatus,
+  BadRequestException,
+  Logger,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { CommonSwaggerResponse } from 'src/common/helpers/common-swagger-config.helper';
@@ -11,6 +22,9 @@ import { User } from 'src/users/entities/users.entity';
 import { AccountsListDto, AccountsListFilterTable } from '../dto/accounts-list.dto';
 import { PaginatedList } from 'src/common/types/pagination-params.types';
 import { AccountList } from '../types/account-list.type';
+import { CreateAccountDto } from '../dto/create-account.dto';
+import { CustomHttpException } from 'src/common/helpers/custom.exception';
+import { ErrorCodesService } from 'src/common/services/error-codes.service';
 
 @Controller({
   path: 'accounts',
@@ -22,7 +36,10 @@ import { AccountList } from '../types/account-list.type';
 @ApiTags('Accounts')
 @CommonSwaggerResponse()
 export class AccountController {
-  constructor(private readonly accountsService: AccountsService) {}
+  constructor(
+    private readonly accountsService: AccountsService,
+    private readonly errorCodesService: ErrorCodesService,
+  ) {}
 
   @Get()
   @Roles(RoleType.READ_ONLY)
@@ -38,5 +55,24 @@ export class AccountController {
 
     const [accounts, currentResults, totalResults] = await this.accountsService.findAllByUser(query);
     return { ...query, totalResults, currentResults, results: accounts };
+  }
+
+  @Post()
+  @Roles(RoleType.READ_ONLY)
+  async createOne(@Body() createAccountDto: CreateAccountDto) {
+    try {
+      return await this.accountsService.create(createAccountDto);
+    } catch (error) {
+      if (error.code === HttpStatus.NOT_FOUND) {
+        throw new CustomHttpException(
+          'USERS_NOT_FOUND',
+          HttpStatus.NOT_FOUND,
+          this.errorCodesService.get('USERS_NOT_FOUND', createAccountDto.usersIds),
+        );
+      }
+
+      Logger.error(error);
+      return new BadRequestException();
+    }
   }
 }
