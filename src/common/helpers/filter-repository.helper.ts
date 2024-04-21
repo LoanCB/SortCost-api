@@ -1,17 +1,11 @@
+import { FindOperator, ObjectLiteral, Raw, SelectQueryBuilder } from 'typeorm';
 import {
-  Equal,
-  FindOperator,
-  In,
-  LessThan,
-  LessThanOrEqual,
-  MoreThan,
-  MoreThanOrEqual,
-  Not,
-  ObjectLiteral,
-  Raw,
-  SelectQueryBuilder,
-} from 'typeorm';
-import { EntityFilteredListOptions, ProcessedParams, RelationParam } from '../types/filter-repository.types';
+  EntityFilteredListOptions,
+  GenerateEntityOptions,
+  ProcessedParams,
+  RelationParam,
+  SqlQueryWithParameter,
+} from '../types/filter-repository.types';
 import { PaginationParamsDto } from '../dto/pagination-params.dto';
 import { FilterOp, SortOrder } from '../types/pagination-params.types';
 import { ConfigService } from '@nestjs/config';
@@ -47,25 +41,29 @@ const sanitizeQueryFilterValues = (filterValues: string | string[]): (string | d
 /**
  * Build the query filter to use on a QueryBuilder.where
  */
-export const sqlBuildQueryFilter = (paginationParams: PaginationParamsDto, isAndCondition = false) => {
-  const { filterField, filterOp, filter } = paginationParams;
+export const sqlBuildQueryFilter = (paginationParams: PaginationParamsDto): SqlQueryWithParameter[] => {
+  const { filterField, filterOp, filter, filterTable } = paginationParams;
 
   // Early return if one parameter is missing
-  if (!filterField || !filterOp || (filterOp !== FilterOp.IS_EMPTY && filterOp !== FilterOp.IS_NOT_EMPTY && !filter)) {
+  if (
+    !filterField ||
+    !filterOp ||
+    !filterTable ||
+    (filterOp !== FilterOp.IS_EMPTY && filterOp !== FilterOp.IS_NOT_EMPTY && !filter)
+  ) {
     return [];
   }
 
-  const orFilter = [];
-  const andFilter: { [key: string]: FindOperator<any> } = {};
   const processedParams: ProcessedParams = {
     filterField: filterField.split(','),
     filterOp: filterOp.split(','),
     filter: !!filter ? filter.split(',') : [''], // TODO fix this in the length verification instead of here (empty doesn't need filter value)
+    filterTable: filterTable.split(','),
   };
 
   if (processedParams.filterField.length) {
     if (
-      ![processedParams.filterOp, processedParams.filter].every(
+      ![processedParams.filterOp, processedParams.filter, processedParams.filterTable].every(
         ({ length }) => length === processedParams.filterField.length,
       )
     ) {
@@ -75,11 +73,13 @@ export const sqlBuildQueryFilter = (paginationParams: PaginationParamsDto, isAnd
     const separator = ';';
     const regexString = `^\\(([^${separator}]+)(?:${separator}([^${separator}]+))*\\)$`;
     const regex = new RegExp(regexString);
+    const response: SqlQueryWithParameter[] = [];
 
     for (let i = 0; i < processedParams.filterField.length; i++) {
       const field = processedParams.filterField[i];
       const operator = processedParams.filterOp[i];
       const value = processedParams.filter[i];
+      const table = processedParams.filterTable[i];
 
       if (operator === FilterOp.IS_ANY_OF && !regex.test(value)) {
         throw new Error(
@@ -88,61 +88,101 @@ export const sqlBuildQueryFilter = (paginationParams: PaginationParamsDto, isAnd
       }
 
       const sanitizedValue = sanitizer(value);
-      const response: { [key: string]: FindOperator<any> } = {};
+      const key = `${operator}${i}`;
 
       switch (operator) {
-        case 'contains':
         default:
-          response[field] = Raw((alias) => `CAST(${alias} as char) LIKE '%${sanitizedValue}%'`);
+        case 'contains':
+          response.push({
+            baseQuery: `${table}.${field} LIKE`,
+            key,
+            value: `%${sanitizedValue}%`,
+          });
           break;
         case 'not':
-          response[field] = Not(sanitizedValue);
+          response.push({
+            baseQuery: `${table}.${field} !=`,
+            key,
+            value: sanitizedValue,
+          });
           break;
         case 'equals':
         case 'is':
-          response[field] = Equal(sanitizedValue);
+          response.push({
+            baseQuery: `${table}.${field} =`,
+            key,
+            value: sanitizedValue,
+          });
           break;
         case 'startsWith':
-          response[field] = Raw((alias) => `CAST(${alias} as char) LIKE '${sanitizedValue}%'`);
+          response.push({
+            baseQuery: `${table}.${field} LIKE`,
+            key,
+            value: `${sanitizedValue}%`,
+          });
           break;
         case 'endsWith':
-          response[field] = Raw((alias) => `CAST(${alias} as char) LIKE '%${sanitizedValue}'`);
+          response.push({
+            baseQuery: `${table}.${field} LIKE`,
+            key,
+            value: `%${sanitizedValue}`,
+          });
           break;
         case 'isEmpty':
-          response[field] = Raw((alias) => `CAST(${alias} as char) LIKE ''`);
+          response.push({
+            baseQuery: `${table}.${field} LIKE`,
+            key,
+            value: '',
+          });
           break;
         case 'isNotEmpty':
-          response[field] = Not(Raw((alias) => `CAST(${alias} as char) LIKE ''`));
+          response.push({
+            baseQuery: `${table}.${field} NOT LIKE`,
+            key,
+            value: '',
+          });
           break;
         case 'after':
-          response[field] = MoreThan(sanitizedValue);
+          response.push({
+            baseQuery: `${table}.${field} >`,
+            key,
+            value: sanitizedValue,
+          });
           break;
         case 'before':
-          response[field] = LessThan(sanitizedValue);
+          response.push({
+            baseQuery: `${table}.${field} <`,
+            key,
+            value: sanitizedValue,
+          });
           break;
         case 'onOrAfter':
-          response[field] = MoreThanOrEqual(sanitizedValue);
+          response.push({
+            baseQuery: `${table}.${field} >=`,
+            key,
+            value: sanitizedValue,
+          });
           break;
         case 'onOrBefore':
-          response[field] = LessThanOrEqual(sanitizedValue);
+          response.push({
+            baseQuery: `${table}.${field} <=`,
+            key,
+            value: sanitizedValue,
+          });
           break;
         case 'isAnyOf':
-          // Special treatment for split values
-          response[field] = In(sanitizeQueryFilterValues(value));
+          response.push({
+            baseQuery: `${table}.${field} IN`,
+            key,
+            value: `(${sanitizeQueryFilterValues(value)})`,
+          });
           break;
       }
-
-      if (isAndCondition) {
-        andFilter[field] = response[field];
-      } else {
-        orFilter.push(response);
-      }
     }
+    return response;
   } else {
     return [];
   }
-
-  return isAndCondition ? andFilter : orFilter;
 };
 
 /**
@@ -177,12 +217,29 @@ const loadLeftJoinAndSelect = <Entity extends ObjectLiteral>(
   }
 };
 
+export const generateEntityFilterAndPagination = (
+  options: GenerateEntityOptions,
+): [{ [x: string]: FindOperator<any> }[], SqlQueryWithParameter[], number, number] => {
+  const { search } = options.queryFilter;
+  const searchFilter = search && options.searchFields ? sqlBuildSearchFilter(search, options.searchFields) : [];
+  const multipleFilter = sqlBuildQueryFilter(options.queryFilter);
+
+  const configService = new ConfigService(configurationConfig());
+  let limit = options.queryFilter.limit ?? configService.get('defaultPaginationLimit') ?? 15;
+  if (limit > 100) {
+    limit = 100;
+  }
+  const offset = limit * (options.queryFilter.page ?? 1) - limit;
+
+  return [searchFilter, multipleFilter, limit, offset];
+};
+
 export const getEntityFilteredList = async <Entity extends ObjectLiteral>(
   options: EntityFilteredListOptions<Entity>,
 ): Promise<[Entity[], number]> => {
   const { search } = options.queryFilter;
   const searchFilter = search && options.searchFields ? sqlBuildSearchFilter(search, options.searchFields) : [];
-  const multipleFilter = sqlBuildQueryFilter(options.queryFilter, options.isAndCondition ?? true);
+  const multipleFilter = sqlBuildQueryFilter(options.queryFilter);
 
   const alias = 'e';
   const pk = options.pkName ?? 'id';
